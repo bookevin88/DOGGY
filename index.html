@@ -1,0 +1,58 @@
+<!-- 步驟 1：基本 HTML 網頁架構 -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>狗狗品種分類 AI 網站</title>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 20px; }
+    img { max-width: 300px; margin: 10px; }
+  </style>
+</head>
+<body>
+  <h1>🐶 狗狗品種分類器 + 協尋連結</h1>
+
+  <!-- 步驟 2：介紹段落 -->
+  <p>上傳你的狗狗照片，這個 AI 模型會判斷牠是哪一個品種，並提供迷子犬協尋連結。</p>
+
+  <!-- 步驟 3：圖片分類按鈕 -->
+  <input type="file" accept="image/*" onchange="predictImage(event)"><br>
+  <div id="preview"></div>
+  <h3>分類結果：</h3>
+  <div id="result"></div>
+
+  <!-- 步驟 4：迷子犬網站連結 -->
+  <h3>🔗 協尋網站：</h3>
+  <a href="https://www.pet-home.jp/lostdog/" target="_blank">ペットのおうち - 迷子犬掲示板</a>
+
+  <!-- 步驟 5：JavaScript 模型加載與分類邏輯 -->
+  <script>
+    const URL = "model/"; // 模型資料夾路徑
+    let model, metadata;
+
+    async function loadModel() {
+      model = await tmImage.load(URL + "model.json", URL + "metadata.json");
+    }
+
+    async function predictImage(event) {
+      const file = event.target.files[0];
+      const image = new Image();
+      image.src = URL.createObjectURL(file);
+      image.onload = async () => {
+        document.getElementById("preview").innerHTML = "";
+        document.getElementById("preview").appendChild(image);
+
+        const prediction = await model.predict(image);
+        prediction.sort((a, b) => b.probability - a.probability);
+
+        const topResult = prediction[0];
+        document.getElementById("result").innerHTML =
+          `${topResult.className} (${(topResult.probability * 100).toFixed(2)}%)`;
+      };
+    }
+
+    loadModel();
+  </script>
+</body>
+</html>
